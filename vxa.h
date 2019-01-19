@@ -23,6 +23,6 @@ SOFTWARE.
 #ifndef _VXA_H
 #define _VXA_H
 
-#include "VXA/opencv-import.h"
+#include "vxa/opencv-import.h"
 
 #endif /* _VXA_H */
