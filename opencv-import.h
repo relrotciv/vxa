@@ -21,8 +21,7 @@ SOFTWARE.
 */
 
 /** @file opencv-import.h
-@brief Functions for OpenCV-OpenVX I/O
-@mainpage
+@brief Functions for OpenVX I/O
 */
 
 #ifndef _OPENCV_IMPORT_H
@@ -79,7 +78,7 @@ int vxa_import_opencv_image(const char* filename, const char* nodename,
  * Saves an OpenVX image into a file. OpenCV is used to write to a file,
  * so any format supported by OpenCV on your platform will be acceptable.
  * Expects an CV_S16C1 image.
- * @param image Input image
+ * @param img Input image
  * @param filename Name of the output file.
  * @return 1 if success, 0 otherwise
  */
@@ -92,7 +91,8 @@ int vxa_write_image(vx_image img, const char* filename);
  * so any format supported by OpenCV on your platform will be acceptable.
  * Expects a VX_DF_IMAGE_U8 image.
  * @param filename Name of the input file.
- * @param image Output OpenVX image created by this function.
+ * @param context The OpenVX context
+ * @param img Output OpenVX image created by this function.
  * @return 1 if success, 0 otherwise
  */
 int vxa_read_image(const char* filename, vx_context context, vx_image* img);
