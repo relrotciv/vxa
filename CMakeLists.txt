@@ -2,11 +2,16 @@
 # Global setup file for OpenVX CMake
 
 #
-cmake_minimum_required(VERSION 2.8.9)
+cmake_minimum_required(VERSION 3.0)
 
 project(opencv_import)
 find_package(OpenCV REQUIRED)
 find_library(OPENVX openvx)
+
+if(${OpenCV_VERSION} VERSION_GREATER 4 OR ${OpenCV_VERSION} VERSION_EQUAL 4)
+  message("OpenCV version 4.0 or higher detected")
+  SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -std=c++11")
+endif()
 
 include_directories($ENV{C_INCLUDE_PATH})
 
