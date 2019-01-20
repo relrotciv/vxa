@@ -13,8 +13,7 @@ if(${OpenCV_VERSION} VERSION_GREATER 4 OR ${OpenCV_VERSION} VERSION_EQUAL 4)
 endif()
 
 find_library(OPENVX openvx)
-find_package(vxa REQUIRED)
-
+find_library(VXU vxu)
 
 set(VXA_VERSION 0.1 CACHE STRING "version" FORCE)
 
@@ -33,10 +32,10 @@ target_include_directories(vxa PUBLIC
 target_link_libraries(vxa ${OPENVX} ${OpenCV_LIBS})
 
 add_executable(vxa_test1 test1.c)
-target_link_libraries(vxa_test1 ${OPENVX} vxa vxu ${OpenCV_LIBS})
+target_link_libraries(vxa_test1 ${OPENVX} vxa ${VXU} ${OpenCV_LIBS})
 
 add_executable(vxa_test2 test2.c)
-target_link_libraries(vxa_test2 ${OPENVX} vxa vxu ${OpenCV_LIBS})
+target_link_libraries(vxa_test2 ${OPENVX} vxa ${OpenCV_LIBS})
 
 install(TARGETS vxa EXPORT vxa DESTINATION "${main_lib_dest}")
 install(FILES ${headers} DESTINATION "${include_dest}")
