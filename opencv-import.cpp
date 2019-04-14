@@ -105,7 +105,7 @@ int vxa_import_opencv_image(const char* filename, const char* nodename,
   return(1);
 }
 
-int vxa_write_image(vx_image image, const char* filename)
+int vxa_vx2cv(vx_image image, cv::Mat& cv_img)
 {
   int width, height;
   vxQueryImage(image, VX_IMAGE_WIDTH, &width, 4);
@@ -125,8 +125,8 @@ int vxa_write_image(vx_image image, const char* filename)
       break;
 
     default:
-      printf("Format not supported\n");
-      return(0);
+      printf("Format %d not supported\n", img_type);
+      return(-1);
   }
 
   vx_rectangle_t roi;
@@ -145,10 +145,10 @@ int vxa_write_image(vx_image image, const char* filename)
   if(status != VX_SUCCESS)
   {
     printf("vxMapImagePatch returned error with code %d\n", status);
-    return(0);
+    return(-1);
   }
 
-  Mat cv_img(height, width, cv_type);
+  cv_img = cv::Mat(height, width, cv_type);
   if(addr.stride_x != 1 && addr.stride_x != 3)
   {
     printf("addressing structure not supported, stride_x = %d\n",
@@ -164,14 +164,11 @@ int vxa_write_image(vx_image image, const char* filename)
 
   vxUnmapImagePatch(image, map_id);
 
-  imwrite(filename, cv_img);
-
   return(1);
 }
 
-int vxa_read_image(const char* filename, vx_context context, vx_image* image)
+vx_image vxa_cv2vx(cv::Mat& cv_img, vx_context context)
 {
-  Mat cv_img = imread(filename);
   vx_df_image img_type;
   switch(cv_img.type())
   {
@@ -184,12 +181,12 @@ int vxa_read_image(const char* filename, vx_context context, vx_image* image)
       break;
 
     default:
-      return(0);
+      return(NULL);
   }
 
   int width = cv_img.cols, height = cv_img.rows;
 
-  *image = vxCreateImage(context, width, height, img_type);
+  vx_image image = vxCreateImage(context, width, height, img_type);
 
   vx_rectangle_t roi;
   roi.start_x = 0;
@@ -202,7 +199,7 @@ int vxa_read_image(const char* filename, vx_context context, vx_image* image)
   vx_imagepatch_addressing_t addr;
   unsigned char* ptr;
 
-  vx_status status = vxMapImagePatch(*image, &roi, 0, &map_id, &addr,
+  vx_status status = vxMapImagePatch(image, &roi, 0, &map_id, &addr,
     (void**)&ptr, VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST, VX_NOGAP_X);
   if(status != VX_SUCCESS)
   {
@@ -216,7 +213,129 @@ int vxa_read_image(const char* filename, vx_context context, vx_image* image)
     memcpy(ptr_y, cv_img.ptr(y), addr.stride_y);
   }
 
-  vxUnmapImagePatch(*image, map_id);
+  vxUnmapImagePatch(image, map_id);
+
+  return image;
+}
+
+int vxa_write_image(vx_image image, const char* filename)
+{
+  cv::Mat cv_img;
+  vxa_vx2cv(image, cv_img);
+  imwrite(filename, cv_img);
 
   return(1);
+}
+
+int vxa_read_image(const char* filename, vx_context context, vx_image* image)
+{
+  Mat cv_img = imread(filename);
+  *image = vxa_cv2vx(cv_img, context);
+
+  return(1);
+}
+
+int draw_lines(vx_context context, vx_image image, vx_array lines, vx_size num_lines,
+  const vx_pixel_value_t* color, int thickness, vx_image* output)
+{
+  /* both input and output images should be RGB */
+  vx_df_image img_type;
+  vxQueryImage(image, VX_IMAGE_FORMAT, &img_type, 4);
+  if(img_type != VX_DF_IMAGE_RGB && img_type != VX_DF_IMAGE_U8)
+  {
+    return(-1);
+  }
+
+  // convert to an opencv image
+  cv::Mat _cv_img, cv_img;
+  vxa_vx2cv(image, _cv_img);
+  switch(img_type)
+  {
+  case VX_DF_IMAGE_RGB:
+    cv_img = _cv_img;
+    break;
+
+  case VX_DF_IMAGE_U8:
+    cv::cvtColor(_cv_img, cv_img, CV_GRAY2RGB);
+    break;
+
+  default:
+    return(-1);
+  }
+
+  // allocate buffer for array data
+  vx_line2d_t* _lines = new vx_line2d_t[num_lines];
+
+  // copy data from array
+  vxCopyArrayRange(lines, 0, num_lines, sizeof(vx_line2d_t), _lines,
+    VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
+
+  cv::Scalar _color = CV_RGB(color->RGB[0], color->RGB[1],
+    color->RGB[2]);
+
+  // draw the lines with OpenCV
+  for(int i = 0; i < num_lines; i++)
+  {
+    cv::Point pt1(_lines[i].start_x, _lines[i].start_y);
+    cv::Point pt2(_lines[i].end_x, _lines[i].end_y);
+    cv::line(cv_img, pt1, pt2, _color, thickness);
+  }
+
+  // convert back to vx_image
+  *output = vxa_cv2vx(cv_img, context);
+
+  delete[] _lines;
+  return 1;
+}
+
+int draw_circles(vx_context context, vx_image image, vx_array centers, vx_size num_circles,
+  int radius, const vx_pixel_value_t* color, int thickness, vx_image* output)
+{
+  /* both input and output images should be RGB */
+  vx_df_image img_type;
+  vxQueryImage(image, VX_IMAGE_FORMAT, &img_type, 4);
+  if(img_type != VX_DF_IMAGE_RGB && img_type != VX_DF_IMAGE_U8)
+  {
+    return(-1);
+  }
+
+  // convert to an opencv image
+  cv::Mat _cv_img, cv_img;
+  vxa_vx2cv(image, _cv_img);
+  switch(img_type)
+  {
+  case VX_DF_IMAGE_RGB:
+    cv_img = _cv_img;
+    break;
+
+  case VX_DF_IMAGE_U8:
+    cv::cvtColor(_cv_img, cv_img, CV_GRAY2RGB);
+    break;
+
+  default:
+    return(-1);
+  }
+
+  // allocate buffer for array data
+  vx_coordinates2d_t* _centers = new vx_coordinates2d_t[num_circles];
+
+  // copy data from array
+  vxCopyArrayRange(centers, 0, num_circles, sizeof(vx_coordinates2d_t), _centers,
+    VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
+
+  cv::Scalar _color = CV_RGB(color->RGB[0], color->RGB[1],
+    color->RGB[2]);
+
+  // draw the lines with OpenCV
+  for(int i = 0; i < num_circles; i++)
+  {
+    cv::Point pt(_centers[i].x, _centers[i].y);
+    cv::circle(cv_img, pt, radius, _color, thickness);
+  }
+
+  // convert back to vx_image
+  *output = vxa_cv2vx(cv_img, context);
+
+  delete[] _centers;
+  return 1;
 }

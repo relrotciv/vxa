@@ -97,6 +97,43 @@ int vxa_write_image(vx_image img, const char* filename);
  */
 int vxa_read_image(const char* filename, vx_context context, vx_image* img);
 
+/**
+ * @brief Draws a set of lines
+ *
+ * Copies the input image to the output, and draws a set of lines given by
+ * an array.
+ * @param context An OpenVX context
+ * @param image The input image, VX_DF_IMAGE_RGB or VX_DF_IMAGE_U8 is expected
+ * @param lines An array of lines, containing vx_line2d_t structures
+ * @param num_lines The number of lines to draw. Must be not greater than
+ * the number of lines in the array
+ * @param color Line color
+ * @param thickness Line thickness
+ * @param output A pointer to the output image, will be VX_DF_IMAGE_RGB
+ * @return 1 if success, -1 otherwise
+ */
+int draw_lines(vx_context context, vx_image image, vx_array lines, vx_size num_lines,
+  const vx_pixel_value_t* color, int thickness, vx_image* output);
+
+  /**
+   * @brief Draws a set of circles
+   *
+   * Copies the input image to the output, and draws a set of circles given by
+   * an array.
+   * @param context An OpenVX context
+   * @param image The input image, VX_DF_IMAGE_RGB or VX_DF_IMAGE_U8 is expected
+   * @param lines An array of circles, containing vx_coordinates2d_t structures
+   * @param num_circles The number of circles to draw. Must be not greater than
+   * the number of elements in the array
+   * @param radius Circle radius
+   * @param color Circle color
+   * @param thickness Circle thickness
+   * @param output A pointer to the output image, will be VX_DF_IMAGE_RGB
+   * @return 1 if success, -1 otherwise
+   */
+  int draw_circles(vx_context context, vx_image image, vx_array circles, vx_size num_circles,
+    int radius, const vx_pixel_value_t* color, int thickness, vx_image* output);
+
 #ifdef __cplusplus
 }
 #endif
