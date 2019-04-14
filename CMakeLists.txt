@@ -19,7 +19,7 @@ set(VXA_VERSION 0.1 CACHE STRING "version" FORCE)
 
 set(include_dest "include/vxa")
 set(main_lib_dest "lib")
-set(headers vxa.h opencv-import.h)
+set(headers vxa.h opencv-import.h opencv-import.hpp)
 
 include_directories($ENV{C_INCLUDE_PATH})
 
