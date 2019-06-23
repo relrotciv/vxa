@@ -24,6 +24,12 @@ SOFTWARE.
 #include "opencv2/opencv.hpp"
 #include <string>
 
+#if CV_VERSION_MAJOR > 3
+#define CV_GRAY2RGB COLOR_GRAY2RGB
+#define CV_RGB2GRAY COLOR_RGB2GRAY
+#endif //CV_VERSION_MAJOR
+
+
 using namespace cv;
 
 int vxa_import_opencv_remap(const char* filename, const char* nodename,
