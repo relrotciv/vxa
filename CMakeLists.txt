@@ -15,6 +15,8 @@ endif()
 find_library(OPENVX openvx)
 find_library(VXU vxu)
 
+include_directories($ENV{C_INCLUDE_PATH})
+
 set(VXA_VERSION 0.1 CACHE STRING "version" FORCE)
 
 set(include_dest "include/vxa")
