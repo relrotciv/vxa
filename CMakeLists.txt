@@ -13,7 +13,9 @@ if(${OpenCV_VERSION} VERSION_GREATER 4 OR ${OpenCV_VERSION} VERSION_EQUAL 4)
 endif()
 
 find_library(OPENVX openvx)
+message("OpenVX found: ${OPENVX}")
 find_library(VXU vxu)
+message("VXU found: ${VXU}")
 
 include_directories($ENV{C_INCLUDE_PATH})
 
@@ -41,5 +43,10 @@ target_link_libraries(vxa_test2 ${OPENVX} vxa ${OpenCV_LIBS})
 
 install(TARGETS vxa EXPORT vxa DESTINATION "${main_lib_dest}")
 install(FILES ${headers} DESTINATION "${include_dest}")
-install(FILES vxa-config.cmake DESTINATION ${main_lib_dest}/cmake/vxa)
-install(EXPORT vxa DESTINATION "${main_lib_dest}/cmake/vxa")
+if((${CMAKE_BUILD_TYPE} MATCHES "Release") OR ("${CMAKE_BUILD_TYPE}" MATCHES ""))
+  install(FILES vxa-config.cmake DESTINATION ${main_lib_dest}/cmake/vxa)
+  install(EXPORT vxa DESTINATION "${main_lib_dest}/cmake/vxa")
+elseif(${CMAKE_BUILD_TYPE} MATCHES "Debug")
+  install(FILES vxa-config.cmake DESTINATION ${main_lib_dest}/cmake/vxa/Debug)
+  install(EXPORT vxa DESTINATION "${main_lib_dest}/cmake/vxa/Debug")
+endif()
