@@ -29,6 +29,13 @@ SOFTWARE.
 #define CV_RGB2GRAY COLOR_RGB2GRAY
 #endif //CV_VERSION_MAJOR
 
+#if defined(VXA_DEBUG)
+#define VXA_PRINT(...) printf(__VA_ARGS__)
+#pragma message("VXA_PRINT is on")
+#else
+#define VXA_PRINT(...)
+#pragma message("VXA_PRINT is off")
+#endif //VXA_PRINT
 
 using namespace cv;
 
@@ -94,7 +101,7 @@ int vxa_import_opencv_image(const char* filename, const char* nodename,
     VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
   if(status != VX_SUCCESS)
   {
-    printf("vxCopyImagePatch returned error with code %d\n", status);
+    VXA_PRINT("vxCopyImagePatch returned error with code %d\n", status);
     return -1;
   }
 
@@ -131,7 +138,7 @@ int vxa_vx2cv(vx_image image, cv::Mat& cv_img)
       break;
 
     default:
-      printf("Format %d not supported\n", img_type);
+      VXA_PRINT("Format %d not supported\n", img_type);
       return(-1);
   }
 
@@ -150,7 +157,7 @@ int vxa_vx2cv(vx_image image, cv::Mat& cv_img)
     (void**)&ptr, VX_READ_ONLY, VX_MEMORY_TYPE_HOST, VX_NOGAP_X);
   if(status != VX_SUCCESS)
   {
-    printf("vxMapImagePatch returned error with code %d\n", status);
+    VXA_PRINT("vxMapImagePatch returned error with code %d\n", status);
     return(-1);
   }
 
@@ -209,8 +216,8 @@ vx_image vxa_cv2vx(cv::Mat& cv_img, vx_context context)
     (void**)&ptr, VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST, VX_NOGAP_X);
   if(status != VX_SUCCESS)
   {
-    printf("vxMapImagePatch returned error with code %d\n", status);
-    return(0);
+    VXA_PRINT("vxMapImagePatch returned error with code %d\n", status);
+    return(NULL);
   }
 
   for(int y = 0; y < height; y++)

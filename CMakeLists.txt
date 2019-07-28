@@ -12,6 +12,10 @@ if(${OpenCV_VERSION} VERSION_GREATER 4 OR ${OpenCV_VERSION} VERSION_EQUAL 4)
   SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -std=c++11")
 endif()
 
+if(${VXA_DEBUG} MATCHES "On")
+  add_definitions(-DVXA_DEBUG)
+endif()
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 find_package(OpenVX)
 include_directories($ENV{C_INCLUDE_PATH})
