@@ -52,6 +52,11 @@ int vxa_import_opencv_remap(const char* filename, const char* nodename,
   fs[(std::string(nodename) + std::string("_dst_width")).c_str()] >> dst_width;
   fs[(std::string(nodename) + std::string("_dst_height")).c_str()] >> dst_height;
 
+  if(cv_remap.type() != CV_32FC2)
+  {
+    return(0);
+  }
+
   if(_dst_width != NULL)
   {
     *_dst_width = dst_width;
@@ -137,6 +142,10 @@ int vxa_vx2cv(vx_image image, cv::Mat& cv_img)
       cv_type = CV_8UC3;
       break;
 
+    case VX_DF_IMAGE_S16:
+      cv_type = CV_16SC1;
+      break;
+
     default:
       VXA_PRINT("Format %d not supported\n", img_type);
       return(-1);
@@ -161,14 +170,14 @@ int vxa_vx2cv(vx_image image, cv::Mat& cv_img)
     return(-1);
   }
 
-  cv_img = cv::Mat(height, width, cv_type);
-  if(addr.stride_x != 1 && addr.stride_x != 3)
+  if(addr.stride_x < 1 || addr.stride_x > 3)
   {
-    printf("addressing structure not supported, stride_x = %d\n",
+    VXA_PRINT("addressing structure not supported, stride_x = %d\n",
       addr.stride_x);
     return(0);
   }
 
+  cv_img = cv::Mat(height, width, cv_type);
   for(int y = 0; y < height; y++)
   {
     unsigned char* ptr_y = ptr + y*addr.stride_y;
@@ -180,7 +189,7 @@ int vxa_vx2cv(vx_image image, cv::Mat& cv_img)
   return(1);
 }
 
-vx_image vxa_cv2vx(cv::Mat& cv_img, vx_context context)
+vx_image vxa_cv2vx(const cv::Mat& cv_img, vx_context context)
 {
   vx_df_image img_type;
   switch(cv_img.type())
@@ -218,6 +227,12 @@ vx_image vxa_cv2vx(cv::Mat& cv_img, vx_context context)
   {
     VXA_PRINT("vxMapImagePatch returned error with code %d\n", status);
     return(NULL);
+  }
+  if(addr.stride_x != 1 && addr.stride_x != 3)
+  {
+    VXA_PRINT("addressing structure not supported, stride_x = %d\n",
+      addr.stride_x);
+    return(0);
   }
 
   for(int y = 0; y < height; y++)
