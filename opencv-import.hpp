@@ -45,4 +45,15 @@ SOFTWARE.
  */
 int vxa_vx2cv(vx_image vx_image, cv::Mat& cv_image);
 
+/**
+ * @brief Convert an OpenCV image into an OpenVX image
+ *
+ * Converts an OpenCV image into an OpenVX image. Expects a
+ * CV_8UC1 or CV_8UC3 image format.
+ * @param cv_image OpenCV image
+ * @param context OpenVX context
+ * @return vx_image if success, NULL otherwise
+ */
+vx_image vxa_cv2vx(const cv::Mat& cv_image, vx_context context);
+
 #endif /* _OPENCV_IMPORT_HPP */
