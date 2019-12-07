@@ -32,7 +32,7 @@ SOFTWARE.
 #endif
 
 #include "VX/vx.h"
-#include "opencv2/cv.hpp"
+#include "opencv2/opencv.hpp"
 
 /**
  * @brief Convert an OpenVX image into an OpenCV image
